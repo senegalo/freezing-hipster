@@ -89,7 +89,7 @@ Commands = {
     actionCommand: function(cmd) {
         var player = this.players[cmd.connection.remoteAddress];
         var op = this.players[player.playingWith];
-        if(op.state[cmd.target]){;
+        if(op.state[cmd.target]){
             op.state[cmd.target].hp += cmd.impact;
             Server.logEvent("Unit ID: "+cmd.target+" For User: " + op.connection.remoteAddress + " Current Health: "+op.state[cmd.target].hp);
             this.syncActions(player,op,"sync");
