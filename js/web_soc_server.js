@@ -29,7 +29,7 @@ Server = {
             var connection = request.accept('test-protocol', request.origin);
             connection.on('message', function(message) {
                 if (message.type === 'utf8') {
-                    Server.logEvent("Recived Message...");
+                    Server.logEvent("Recived Message..." + message.utf8Data);
                     var parsedMsg = JSON.parse(message.utf8Data);
                     if (Commands[parsedMsg.type + "Command"]) {
                         Server.logEvent("Recived Command...");
@@ -62,7 +62,9 @@ Commands = {
     extend: require('util')._extend,
     players: {},
     initCommand: function(cmd) {
-        var state = this.convertStateToObject(cmd.state);
+        var state = { 
+          score: 0
+        };
         this.players[cmd.connection.remoteAddress] = {
             connection: cmd.connection,
             engaged: false,
@@ -78,7 +80,9 @@ Commands = {
             if (!op.engaged) {
                 op.engaged = true;
                 op.playingWith = cmd.connection.remoteAddress;
+                op.state.isMyTurn = false;
                 player.engaged = true;
+                player.state.isMyTurn = true;
                 player.playingWith = p;
                 Server.logEvent("Connecting "+player.connection.remoteAddress+" With "+op.connection.remoteAddress);
                 this.syncActions(player,op,"newSession");
@@ -89,25 +93,26 @@ Commands = {
     actionCommand: function(cmd) {
         var player = this.players[cmd.connection.remoteAddress];
         var op = this.players[player.playingWith];
-        if(op.state[cmd.target]){
-            op.state[cmd.target].hp += cmd.impact;
-            Server.logEvent("Unit ID: "+cmd.target+" For User: " + op.connection.remoteAddress + " Current Health: "+op.state[cmd.target].hp);
-            this.syncActions(player,op,"sync");
-        } else {
-            player.connection.send("NO TROUPS FOUND WITH ID "+cmd.target);
-        }
+        
+
+        player.state = cmd.state
+        player.state.isMyTurn = false;
+        op.state.isMyTurn = true;
+        this.syncActions(player,op,"sync");
     },
     syncActions: function(player, op, type) {
-        Server.logEvent("Syncying Sessions...");
+        Server.logEvent("Syncying Sessions: "+type);
+        Server.logEvent(JSON.stringify(player.state));
+        Server.logEvent(JSON.stringify(op.state));
         Server.sendObject(player.connection, {
             type: type,
-            yourState: this.convertStateToArray(player.state),
-            opState: this.convertStateToArray(op.state)
+            yourState: player.state,
+            opState: op.state
         });
         Server.sendObject(op.connection, {
             type: type,
-            yourState: this.convertStateToArray(op.state),
-            opState: this.convertStateToArray(player.state)
+            yourState: op.state,
+            opState: player.state
         });
     },
     convertStateToArray: function(state){
@@ -126,7 +131,7 @@ Commands = {
     },
     closeConnection: function(id){
         var player = this.players[id];
-        if(player.engaged){
+        if(player && player.engaged){
             var op = this.players[player.playingWith];
             Server.sendObject(op.connection,{
                 type: "connectionClosed"
