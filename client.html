@@ -8,7 +8,7 @@
 <script>
 var time;
 var myscore = 0;
-var ws = new WebSocket( "ws://192.168.1.106:8080/", "test-protocol" );
+var ws = new WebSocket( "ws://www.eyerollweb.com:8080/", "test-protocol" );
 ws.onmessage = function(e) {
 	var x = JSON.parse(e.data);
 	console.log(x);
