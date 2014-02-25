@@ -11,11 +11,12 @@ var time;
 var score = 0;
 var ws = new WebSocket( "ws://192.168.1.106:8080/", "test-protocol" );
 ws.onmessage = function(e) {
-	if(e.data.type == "newSession"){
+	e = e.data;
+	if(e.type == "newSession"){
 			if(e.yourState.isMyTurn)
 				placeBall();
 			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
-		}else if(e.data.type = "sync") {
+		}else if(e.type = "sync") {
 		if(e.yourState.isMyTurn)
 				placeBall();
 			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
