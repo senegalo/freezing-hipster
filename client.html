@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WebSocket Chat</title>
+<script src="http://www.google.com/jsapi"></script>
+<script>google.load("jquery", "1.3")</script>
+<script src="http://jquery-json.googlecode.com/files/jquery.json-2.2.min.js"></script>
+<script src="jquery.websocket-0.0.1.js"></script>
+<script>
+var time;
+var score = 0;
+
+var ws = $.websocket("ws://127.0.0.1:8080/", {
+        events: {
+		newSession: function(e) {
+			if(e.yourState.isMyTurn)
+				placeBall();
+			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
+		},
+		sync: function(e) {
+			if(e.yourState.isMyTurn)
+				placeBall();
+			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
+		},
+		open: function(e) {						
+			ws.send('init', "{score: 0}");
+		}
+
+	}
+});
+
+var width, height, min, ball;
+$(document).ready(function() {
+$('body').width($(window).width());
+$('body').height($(window).height());
+width = $(window).width();
+height = $(window).height();
+min = (width > height) ? (height): (width);
+ball = $('#ball');
+ball.width(min/10).height(min/10);
+ball.click(function(){
+	score += new Date() - time;
+	ws.send('action', "{score: "+score+"}");
+	});
+
+});
+
+function placeBall(){
+	var x =  Math.random() * width/min;
+	ball.css('left', x*min);
+	var y =  Math.random() * height/min;
+	ball.css('top', y*min);
+	ball.show();
+	time = new Date();
+}
+
+</script>
+</head>
+<body style="margin:0px; padding:0px;overflow:hidden;">
+<div id="scoreboard">Score: 0, 0</div>
+<div id="ball" style="display:none; position: absolute; background-color:red;"></div>
+</body>
+</html>
