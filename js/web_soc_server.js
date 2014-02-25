@@ -65,21 +65,21 @@ Commands = {
         var state = { 
           score: 0
         };
-        this.players[cmd.connection.remoteAddress+":"+cmd.connection.socket.remotePort] = {
+        this.players[this.getPlayerKey(cmd.connection)] = {
             connection: cmd.connection,
             engaged: false,
             initialState: state,
             state: this.extend({},state)
         };
-        var player = this.players[cmd.connection.remoteAddress];
+        var player = this.players[this.getPlayerKey(cmd.connection)];
         for (var p in this.players) {
             var op = this.players[p];
-            if (p === cmd.connection.remoteAddress) {
+            if (p === this.getPlayerKey(cmd.connection)) {
                 continue;
             }
             if (!op.engaged) {
                 op.engaged = true;
-                op.playingWith = cmd.connection.remoteAddress;
+                op.playingWith = this.getPlayerKey(cmd.connection);
                 op.state.isMyTurn = false;
                 player.engaged = true;
                 player.state.isMyTurn = true;
@@ -91,7 +91,7 @@ Commands = {
         }
     },
     actionCommand: function(cmd) {
-        var player = this.players[cmd.connection.remoteAddress];
+        var player = this.players[this.getPlayerKey(cmd.connection)];
         var op = this.players[player.playingWith];
         
 
@@ -140,6 +140,9 @@ Commands = {
             op.state = this.extend({},op.initialState);
         }
         delete this.players[id];
+    },
+    getPlayerKey: function(connection){
+      return connection.remoteAddress+":"+connection.socket.remotePort
     }
 };
 
