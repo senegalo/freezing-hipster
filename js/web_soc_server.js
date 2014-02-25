@@ -65,7 +65,7 @@ Commands = {
         var state = { 
           score: 0
         };
-        this.players[cmd.connection.remoteAddress] = {
+        this.players[cmd.connection.remoteAddress+":"+cmd.connection.socket.remotePort] = {
             connection: cmd.connection,
             engaged: false,
             initialState: state,
