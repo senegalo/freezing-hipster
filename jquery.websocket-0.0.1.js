@@ -17,7 +17,7 @@ $.extend({
 		events: {}
 	},
 	websocket: function(url, s) {
-		var ws = WebSocket ? new WebSocket( url ) : {
+		var ws = WebSocket ? new WebSocket( url, "test-protocol" ) : {
 			send: function(m){ return false },
 			close: function(){}
 		};
