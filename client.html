@@ -11,7 +11,8 @@ var time;
 var score = 0;
 var ws = new WebSocket( "ws://192.168.1.106:8080/", "test-protocol" );
 ws.onmessage = function(e) {
-	e = JSON.parse(e.data);
+	var x = JSON.parse(e.data);
+	e = x;
 	if(e.type == "newSession"){
 			if(e.yourState.isMyTurn)
 				placeBall();
@@ -41,6 +42,7 @@ ball.width(min/10).height(min/10);
 ball.click(function(){
 	score += new Date() - time;
 	ws.send(JSON.stringify({type: 'action', state: "{score: "+score+"}"}));
+	ball.hide();
 	});
 
 });
