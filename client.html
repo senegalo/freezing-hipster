@@ -11,7 +11,7 @@ var time;
 var score = 0;
 var ws = new WebSocket( "ws://192.168.1.106:8080/", "test-protocol" );
 ws.onmessage = function(e) {
-	e = e.data;
+	e = JSON.parse(e.data);
 	if(e.type == "newSession"){
 			if(e.yourState.isMyTurn)
 				placeBall();
