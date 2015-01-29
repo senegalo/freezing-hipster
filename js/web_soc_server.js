@@ -73,20 +73,25 @@ Commands = {
         for (var p in this.players) {
             var op = this.players[p];
             if (p === cmd.connection.remoteAddress) {
+                op.connection.send("Waiting for opponent !");
                 continue;
             }
             if (!op.engaged) {
                 op.engaged = true;
                 op.playingWith = cmd.connection.remoteAddress;
+                op.turn = 1; 
                 player.engaged = true;
                 player.playingWith = p;
+                player.turn = 2;
                 Server.logEvent("Connecting "+player.connection.remoteAddress+" With "+op.connection.remoteAddress);
                 this.syncActions(player,op,"newSession");
+                op.connection.send("You are Player 1");
+                player.connection.send ("You are Player 2");
                 break;
             }
         }
     },
-    actionCommand: function(cmd) {
+    /*actionCommand: function(cmd) {
         var player = this.players[cmd.connection.remoteAddress];
         var op = this.players[player.playingWith];
         if(op.state[cmd.target]){
@@ -96,21 +101,44 @@ Commands = {
         } else {
             player.connection.send("NO TROUPS FOUND WITH ID "+cmd.target);
         }
+    },*/
+
+    beingHitCommand: function(cmd){
+        var player = this.players[cmd.connection.remoteAddress];
+        var op = this.players[player.playingWith];
+        Server.sendObject(op.connection, {
+            damage: cmd.damage;
+        });
     },
+
+    hitCommand: function(cmd){
+        var player = this.players[cmd.connection.remoteAddress];
+        var op = this.players[player.playingWith];
+        Server.sendObject(op.connection, {
+            damage: cmd.target;
+        });
+    },
+
+    endTurnCommand: function(cmd){
+        var player = this.players[cmd.connection.remoteAddress];
+        var op = this.players[player.playingWith];
+        player.playing = false;
+        op.playing = true;
+        this.syncActions(player,op,"sync");
+    },
+
     syncActions: function(player, op, type) {
         Server.logEvent("Syncying Sessions...");
         Server.sendObject(player.connection, {
-            type: type,
-            yourState: this.convertStateToArray(player.state),
-            opState: this.convertStateToArray(op.state)
+            playing: player.playing,
+            type: type
         });
         Server.sendObject(op.connection, {
-            type: type,
-            yourState: this.convertStateToArray(op.state),
-            opState: this.convertStateToArray(player.state)
+            playing: op.playing,
+            type: type
         });
     },
-    convertStateToArray: function(state){
+    /*convertStateToArray: function(state){
         var out = [];
         for(var s in state){
             out.push(state[s]);
@@ -135,7 +163,7 @@ Commands = {
             op.state = this.extend({},op.initialState);
         }
         delete this.players[id];
-    }
+    } */
 };
 
 Server.init();
