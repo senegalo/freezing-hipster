@@ -62,30 +62,34 @@ Commands = {
     extend: require('util')._extend,
     players: {},
     initCommand: function(cmd) {
-        var state = this.convertStateToObject(cmd.state);
-        this.players[cmd.connection.remoteAddress] = {
+        this.players[cmd.id] = {
             connection: cmd.connection,
             engaged: false,
-            initialState: state,
-            state: this.extend({},state)
+            id: cmd.id
         };
-        var player = this.players[cmd.connection.remoteAddress];
+        var player = this.players[cmd.id];
         for (var p in this.players) {
             var op = this.players[p];
-            if (p === cmd.connection.remoteAddress) {
+            if (p === cmd.id) {
                 continue;
             }
             if (!op.engaged) {
                 op.engaged = true;
-                op.playingWith = cmd.connection.remoteAddress;
+                op.playingWith = cmd.id;
                 player.engaged = true;
                 player.playingWith = p;
-                Server.logEvent("Connecting "+player.connection.remoteAddress+" With "+op.connection.remoteAddress);
-                this.syncActions(player,op,"newSession");
+                Server.logEvent("Connecting "+player.id+" With "+op.id);
                 break;
             }
         }
     },
+
+    forwardCommand: function(cmd){
+      var player = this.players[cmd.id];
+      var op = this.players[player.playingWith];
+      Server.sendObject(op.connection, { type: "forward", state: cmd.state});
+    },
+
     actionCommand: function(cmd) {
         var player = this.players[cmd.connection.remoteAddress];
         var op = this.players[player.playingWith];

@@ -1,65 +1,44 @@
 <!doctype html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>WebSocket Chat</title>
-<script src="http://www.google.com/jsapi"></script>
-<script>google.load("jquery", "1.3")</script>
-<script>
-var time;
-var myscore = 0;
-var ws = new WebSocket( "ws://www.eyerollweb.com:8080/", "test-protocol" );
-ws.onmessage = function(e) {
-	var x = JSON.parse(e.data);
-	console.log(x);
-	e = x;
-	if(e.type == "newSession"){
-			if(e.yourState.isMyTurn)
-				placeBall();
-			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
-		}else if(e.type = "sync") {
-		if(e.yourState.isMyTurn)
-				placeBall();
-			$("#scoreboard").text("Score: "+e.yourState.score+", "+e.opState.score);	
+  <head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat</title>
+    <script src="http://www.google.com/jsapi"></script>
+    <script>google.load("jquery", "1.3")</script>
+    <script>
+      function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      };
 
-	}
-};
-ws.onopen = function(e) {	
-			console.log("connected" + e);		
-			ws.send(JSON.stringify({type: 'init', state: {score: 0}}));
-		};
-
-
-var width, height, min, ball;
-$(document).ready(function() {
-$('body').width($(window).width());
-$('body').height($(window).height());
-width = $(window).width();
-height = $(window).height();
-min = (width > height) ? (height): (width);
-ball = $('#ball');
-ball.width(min/10).height(min/10);
-ball.click(function(){
-	myscore += new Date() - time;
-	ws.send(JSON.stringify({type: 'action', state: {score: myscore}}));
-	ball.hide();
-	});
-
-});
-
-function placeBall(){
-	var x =  Math.random() * width/min;
-	ball.css('left', x*min);
-	var y =  Math.random() * height/min;
-	ball.css('top', y*min);
-	ball.show();
-	time = new Date();
+function send(type, obj){
+  ws.send(JSON.stringify({type: type, id: ID , state: obj }));
 }
+
+var ID = getParameterByName("id") || Math.round(Math.rand()*100000);
+
+var ws = new WebSocket( "ws://localhost:8080/", "test-protocol" );
+
+ws.onmessage = function(e) {
+  var x = JSON.parse(e.data);
+  console.log(x);
+  e = x;
+  if(e.type == "forward"){
+  }
+};
+
+ws.onopen = function(e) {	
+  console.log("connected" + e);	
+  send('init');
+};
+
+
+
 
 </script>
 </head>
 <body style="margin:0px; padding:0px;overflow:hidden;">
-<div id="scoreboard">Score: 0, 0</div>
-<div id="ball" style="display:none; position: absolute; background-color:red;"></div>
 </body>
 </html>
