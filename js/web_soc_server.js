@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var port = (process.argv[2])? parseInt(process.argv[2]) : 8080;
 Server = {
     connections: {},
     connectionsID: 1,
@@ -14,7 +15,7 @@ Server = {
         });
 
         server.listen(8080, function() {
-            Server.logEvent('Server is listening on port 8080');
+            Server.logEvent('Server is listening on port ' + port);
         });
 
         var wsServer = new WebSocketServer({
