@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 Server = {
     connections: {},
-    connectionsID: 0,
+    connectionsID: 1,
     init: function() {
         var self = this;
         
@@ -23,18 +23,18 @@ Server = {
         });
 
         wsServer.on('request', function(request) {
-            if (!Server.originIsAllowed(request.origin)) {
+            //if (!Server.originIsAllowed(request.origin)) {
                 // Make sure we only accept requests from an allowed origin
-                request.reject();
-                Server.logEvent('Connection from origin ' + request.origin + ' rejected.');
-                return;
-            }
-            
+             //   request.reject();
+              //  Server.logEvent('Connection from origin ' + request.origin + ' rejected.');
+              //  return;
+            //}
+         // Server.logEvent(self)  
             self.acceptConnection(request);
         });
     },
     
-    accectConnection: function (request) {
+    acceptConnection: function (request) {
         var self = this;
         var guid = this.getGUID();
         var connection = request.accept('test-protocol', request.origin);
@@ -43,20 +43,27 @@ Server = {
             connection: connection,
             pairedWith: false
         };
-
+        Server.logEvent("sending:"+ guid);
         connection.send(guid);
 
         connection.on('message', function (message) {
+            Server.logEvent("message received:" + JSON.stringify(message));
+            Server.logEvent("GUID:"+guid);
             var conObj = self.connections[guid];
+            Server.logEvent(conObj.pairedWith + " " + self.connections[conObj.pairedWith]);
             if(conObj.pairedWith === false){
+                Server.logEvent("pairing " + guid + " with " + message.utf8Data);
                 self.connections[guid].pairedWith = message.utf8Data;
                 self.connections[message.utf8Data].pairedWith = guid;
             } else {
-                self.connections[conObj.pariedWith].connection.send(message.utf8Data);
+                self.connections[conObj.pairedWith].connection.send(message.utf8Data);
             }
         });
 
         connection.on('close', function (reasonCode, description) {
+            if(!self.connections[guid]){
+                return;
+            }
             var pairID = self.connections[guid].pairedWith;
             self.connections[pairID] && self.connections[pairID].connection.close();
             Server.logEvent('Peer ' + connection.remoteAddress + ' disconnected.');
@@ -67,6 +74,10 @@ Server = {
     
     getGUID: function(){
         return this.connectionsID++;
+    },
+
+    logEvent: function(message){
+        console.log(message);
     }
 };
 
