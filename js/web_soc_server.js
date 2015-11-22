@@ -23,18 +23,18 @@ Server = {
         });
 
         wsServer.on('request', function(request) {
-            if (!Server.originIsAllowed(request.origin)) {
+            //if (!Server.originIsAllowed(request.origin)) {
                 // Make sure we only accept requests from an allowed origin
-                request.reject();
-                Server.logEvent('Connection from origin ' + request.origin + ' rejected.');
-                return;
-            }
-            
+             //   request.reject();
+              //  Server.logEvent('Connection from origin ' + request.origin + ' rejected.');
+              //  return;
+            //}
+         // Server.logEvent(self)  
             self.acceptConnection(request);
         });
     },
     
-    accectConnection: function (request) {
+    acceptConnection: function (request) {
         var self = this;
         var guid = this.getGUID();
         var connection = request.accept('test-protocol', request.origin);
@@ -43,15 +43,18 @@ Server = {
             connection: connection,
             pairedWith: false
         };
-
+        Server.logEvent("sending:"+ guid);
         connection.send(guid);
 
         connection.on('message', function (message) {
+            Server.logEvent("message received:" + JSON.stringify(message));
             var conObj = self.connections[guid];
             if(conObj.pairedWith === false){
+              Server.logEvent("pairing " + guid + " with " + message.utf8Data);
                 self.connections[guid].pairedWith = message.utf8Data;
                 self.connections[message.utf8Data].pairedWith = guid;
             } else {
+               Server.logEvent(conObj.pariedWith + " " + self.connections[conObj.pariedWith])
                 self.connections[conObj.pariedWith].connection.send(message.utf8Data);
             }
         });
@@ -67,6 +70,10 @@ Server = {
     
     getGUID: function(){
         return this.connectionsID++;
+    },
+
+    logEvent: function(message){
+        console.log(message);
     }
 };
 
