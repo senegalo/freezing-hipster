@@ -43,16 +43,16 @@ Server = {
             connection: connection,
             pairedWith: false
         };
-        Server.logEvent("sending:"+ guid);
+        //Server.logEvent("sending:"+ guid);
         connection.send(guid);
 
         connection.on('message', function (message) {
-            Server.logEvent("message received:" + JSON.stringify(message));
-            Server.logEvent("GUID:"+guid);
+            //Server.logEvent("message received:" + JSON.stringify(message));
+            //Server.logEvent("GUID:"+guid);
             var conObj = self.connections[guid];
-            Server.logEvent(conObj.pairedWith + " " + self.connections[conObj.pairedWith]);
+            //Server.logEvent(conObj.pairedWith + " " + self.connections[conObj.pairedWith]);
             if(conObj.pairedWith === false){
-                Server.logEvent("pairing " + guid + " with " + message.utf8Data);
+               // Server.logEvent("pairing " + guid + " with " + message.utf8Data);
                 self.connections[guid].pairedWith = message.utf8Data;
                 self.connections[message.utf8Data].pairedWith = guid;
             } else {
